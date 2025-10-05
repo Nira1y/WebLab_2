@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css')}}">
+    <title>{% block title %}{% endblock %}</title>
+</head>
+<body>
+    <div class="container">
+        <header class="d-flex justify-content-between align-items-center py-3">
+            <a href="/" class="d-flex align-items-center text-dark text-decoration-none">
+                <img src="{{ url_for('static', filename='img/cat.jpg')}}" alt="Логотип" width="50" height="50" class="me-2">
+                Новостной блог
+            </a>
+            
+            <ul class="nav nav-pills">
+                <li class="nav-item"><a href="{{ url_for('index')}}" class="nav-link active" aria-current="page">Главная</a></li> 
+                <li class="nav-item"><a href="{{ url_for('about')}}" class="nav-link">О проекте</a></li> 
+                <li class="nav-item"><a href="{{ url_for('contact')}}" class="nav-link">Контакты</a></li> 
+                <li class="nav-item"><a href="{{ url_for('feedback')}}" class="nav-link">Обратная связь</a></li> 
+            </ul>
+        </header>
+        {% block content %}{% endblock %}
+    </div>
+    <footer>
+        <p>&copy; 2025 Новостной Блог by Yanl1n.</p>
+    </footer> 
+</body> 
+</html>
