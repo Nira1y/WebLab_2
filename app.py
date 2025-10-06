@@ -14,7 +14,7 @@ articles = [
 @app.route("/index")
 @app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template('index.html', articles=articles, current_date = date.today())
 
 @app.route("/about")
 def about():
@@ -27,6 +27,14 @@ def contact():
 @app.route("/feedback")
 def feedback():
     return render_template('feedback.html')
+
+@app.route('/news/<int:id>')
+def news_article(id):
+    article = next((a for a in articles if a['id'] == id), None)
+    if article:
+        return render_template('article.html', article=article, current_date=date.today())
+    else:
+        return "Статья не найдена", 404
 
 if __name__ == '__main__':
     app.run(debug=True)
