@@ -3,3 +3,43 @@
 {% block title%}
 Обратная связь
 {%  endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h1>Обратная связь</h1>
+        
+        {% if submitted %}
+        <div class="alert alert-success">
+            <h4>Спасибо за ваше сообщение!</h4>
+            <p><strong>Имя:</strong> {{ name }}</p>
+            <p><strong>Email:</strong> {{ email }}</p>
+            <p><strong>Сообщение:</strong> {{ message }}</p>
+            <a href="{{ url_for('feedback') }}" class="btn btn-custom">Отправить новое сообщение</a>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Вернуться на главную</a>
+            
+            
+        </div>
+        {% else %}
+        <form method="POST">
+            <div class="mb-3">
+                <label for="name" class="form-label">Имя *</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="email" class="form-label">Email *</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="message" class="form-label">Сообщение *</label>
+                <textarea class="form-control" id="message" name="message" rows="5" required></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Отправить</button>
+        </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

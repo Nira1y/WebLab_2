@@ -1,39 +1,46 @@
-    {% extends "base.html "%}
+{% extends "base.html "%}
 
-    {% block content %}
-    <article>
-        <header>
-            <h1>
-                {{article.title}}
-                {% if article.date == current_date%}
-                <span class="badge bg-success fs-6">Новое!</span>
-                {% endif %}
-            </h1>
-            <p class="text-muted"> Опубликовано: {{ article.date.strftime('%d.%m.%Y')}}</p>
-            </header>
-            <div>
-                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quidem, officiis?</p>
-                <p>Voluptatem soluta adipisci ducimus vitae? Quae, esse. Culpa, laboriosam veniam.</p>
-                <p>Eos suscipit itaque natus obcaecati beatae dolorum unde inventore veniam.</p>
-                <p>Amet, quasi suscipit nesciunt dolorum necessitatibus quam labore reiciendis porro?</p>
-                <p>Excepturi odio vel facere esse inventore voluptates, veritatis rerum recusandae?</p>
-                <p>Excepturi amet est blanditiis cum soluta rem fugit animi qui.</p>
-                <p>Iste quasi, animi fuga quos nesciunt consequuntur impedit pariatur atque!</p>
-                <p>Cumque optio consectetur beatae ratione facilis voluptates vel asperiores nisi!</p>
-                <p>Aperiam, at autem animi illum maxime neque molestias itaque voluptatem?</p>
-                <p>Inventore illo itaque sequi accusamus minus tempora ullam doloribus quo.</p>
-                <p>Commodi nostrum a odio et, accusantium hic qui pariatur blanditiis!</p>
-                <p>Ut accusantium aliquid aliquam exercitationem sint hic quasi eaque natus!</p>
-                <p>Rem, repellat! Rerum aspernatur magnam recusandae veritatis eum modi deleniti?</p>
-                <p>Hic nostrum asperiores quas fugiat soluta sapiente cum quod iusto.</p>
-                <p>Repellendus eligendi laboriosam pariatur eveniet debitis fugiat libero minima amet!</p>
-                <p>Libero modi doloribus id maiores saepe ipsa nemo accusantium iste!</p>
-                <p>Aliquam, tempore in! Explicabo possimus amet, tenetur laudantium placeat impedit!</p>
-                <p>Provident, rem! Repellendus molestias ea sunt at adipisci, officia saepe?</p>
-                <p>Officiis atque provident odio voluptate commodi repellat nobis, earum enim.</p>
-                <p>Laudantium eos adipisci necessitatibus quaerat accusamus nisi fuga placeat perferendis?</p>
-            </div>
-            <p class="text-muted">ID статьи: {{ article.id }}</p>
-    </article>
+{% block title %}
+    {{article.title}}
+{% endblock %}
 
-    {% endblock %}
+{% block content %}
+<article>
+    <header>
+         <h1>
+            {{article.title}}
+            {% if article.date == current_date%}
+            <span class="badge bg-success fs-6">Новое!</span>
+            {% endif %}
+        </h1>
+        <p class="text-muted"> Опубликовано: {{ article.date.strftime('%d.%m.%Y')}}</p>
+    </header>
+    <div>
+        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quidem, officiis?</p>
+        <p>Voluptatem soluta adipisci ducimus vitae? Quae, esse. Culpa, laboriosam veniam.</p>
+        <p>Eos suscipit itaque natus obcaecati beatae dolorum unde inventore veniam.</p>
+        <p>Amet, quasi suscipit nesciunt dolorum necessitatibus quam labore reiciendis porro?</p>
+        <p>Excepturi odio vel facere esse inventore voluptates, veritatis rerum recusandae?</p>
+        <p>Excepturi amet est blanditiis cum soluta rem fugit animi qui.</p>
+        <p>Iste quasi, animi fuga quos nesciunt consequuntur impedit pariatur atque!</p>
+        <p>Cumque optio consectetur beatae ratione facilis voluptates vel asperiores nisi!</p>
+        <p>Aperiam, at autem animi illum maxime neque molestias itaque voluptatem?</p>
+        <p>Inventore illo itaque sequi accusamus minus tempora ullam doloribus quo.</p>
+        <p>Commodi nostrum a odio et, accusantium hic qui pariatur blanditiis!</p>
+        <p>Ut accusantium aliquid aliquam exercitationem sint hic quasi eaque natus!</p>
+        <p>Rem, repellat! Rerum aspernatur magnam recusandae veritatis eum modi deleniti?</p>
+        <p>Hic nostrum asperiores quas fugiat soluta sapiente cum quod iusto.</p>
+        <p>Repellendus eligendi laboriosam pariatur eveniet debitis fugiat libero minima amet!</p>
+        <p>Libero modi doloribus id maiores saepe ipsa nemo accusantium iste!</p>
+        <p>Aliquam, tempore in! Explicabo possimus amet, tenetur laudantium placeat impedit!</p>
+        <p>Provident, rem! Repellendus molestias ea sunt at adipisci, officia saepe?</p>
+        <p>Officiis atque provident odio voluptate commodi repellat nobis, earum enim.</p>
+        <p>Laudantium eos adipisci necessitatibus quaerat accusamus nisi fuga placeat perferendis?</p>
+    </div>
+    <div class="container mt-4">
+        <a href="{{ url_for('index') }}" class="btn btn-secondary d-inline-block">Вернуться на главную</a>
+        <p class="text-muted d-inline-block me-3">ID статьи: {{ article.id }}</p>  
+    </div>
+</article>
+
+{% endblock %}
