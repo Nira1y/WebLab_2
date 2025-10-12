@@ -18,9 +18,17 @@
             </a>
             <ul class="nav nav-pills">
                 <li class="nav-item"><a href="{{ url_for('index')}}" class="nav-link" aria-current="page">Главная</a></li> 
+                <li class="nav-item"><a href="{{ url_for('articles_list')}}" class="nav-link">Статьи</a></li> 
                 <li class="nav-item"><a href="{{ url_for('about')}}" class="nav-link">О проекте</a></li> 
                 <li class="nav-item"><a href="{{ url_for('contact')}}" class="nav-link">Контакты</a></li> 
-                <li class="nav-item"><a href="{{ url_for('feedback')}}" class="nav-link">Обратная связь</a></li> 
+                <li class="nav-item"><a href="{{ url_for('feedback')}}" class="nav-link">Обратная связь</a></li>
+                {% if current_user.is_authenticated %}
+                    <li class="nav-item"><a href="{{ url_for('create_article')}}" class="nav-link">Создать статью</a></li> 
+                    <li class="nav-item"><a href="{{ url_for('logout')}}" class="nav-link">Выйти ({{ current_user.name }})</a></li> 
+                {% else %}
+                    <li class="nav-item"><a href="{{ url_for('login')}}" class="nav-link">Войти</a></li> 
+                    <li class="nav-item"><a href="{{ url_for('register')}}" class="nav-link">Регистрация</a></li> 
+                {% endif %}   
             </ul>
             </header>
         </div>
