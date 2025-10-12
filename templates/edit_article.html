@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Редактирование статьи
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h1>Редактирование статьи</h1>
+        
+        <form method="POST">
+            <div class="mb-3">
+                <label for="title" class="form-label">Заголовок *</label>
+                <input type="text" class="form-control" id="title" name="title" value="{{ article.title }}" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="category" class="form-label">Категория</label>
+                <select class="form-select" id="category" name="category">
+                    <option value="general" {% if article.category == 'general' %}selected{% endif %}>Общее</option>
+                    <option value="technology" {% if article.category == 'technology' %}selected{% endif %}>Технологии</option>
+                    <option value="science" {% if article.category == 'science' %}selected{% endif %}>Наука</option>
+                    <option value="culture" {% if article.category == 'culture' %}selected{% endif %}>Культура</option>
+                    <option value="sports" {% if article.category == 'sports' %}selected{% endif %}>Спорт</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label for="text" class="form-label">Текст статьи *</label>
+                <textarea class="form-control" id="text" name="text" rows="10" required>{{ article.text }}</textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+            <a href="{{ url_for('news_article', id=article.id) }}" class="btn btn-secondary">Отмена</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
