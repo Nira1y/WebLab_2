@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Статьи
+{% endblock %}
+
+{% block content %}
+<h1>Все статьи</h1>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <form method="GET" action="{{ url_for('articles_list') }}">
+            <div class="input-group">
+                <input type="text" class="form-control" name="search" placeholder="Поиск статей..." value="{{ search_query or '' }}">
+                <button class="btn btn-outline-secondary" type="submit">Найти</button>
+            </div>
+        </form>
+    </div>
+    <div class="col-md-6">
+        <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                {% if selected_category %}Категория: {{ selected_category }}{% else %}Все категории{% endif %}
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{{ url_for('articles_list') }}">Все категории</a></li>
+                {% for category in categories %}
+                <li><a class="dropdown-item" href="{{ url_for('articles_by_category', category=category) }}">{{ category }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    {% for article in articles %}
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">{{ article.title }}</h5>
+                <p class="card-text">
+                    <small class="text-muted">
+                        Опубликовано: {{ article.date.strftime('%d.%m.%Y') }}<br>
+                        Автор: {{ article.author.name }}<br>
+                        Категория: <span class="badge bg-info">{{ article.category }}</span>
+                    </small>
+                </p>
+                <p class="card-text">{{ article.text[:150] }}...</p>
+                <a href="{{ url_for('news_article', id=article.id) }}" class="btn btn-custom">Читать далее</a>
+                {% if current_user.is_authenticated and current_user == article.author %}
+                <div class="mt-2">
+                    <a href="{{ url_for('edit_article', id=article.id) }}" class="btn btn-sm btn-outline-primary">Редактировать</a>
+                    <a href="{{ url_for('delete_article', id=article.id) }}" class="btn btn-sm btn-outline-danger" 
+                       onclick="return confirm('Вы уверены, что хотите удалить эту статью?')">Удалить</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            Статьи не найдены.
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

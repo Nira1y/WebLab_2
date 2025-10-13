@@ -73,13 +73,16 @@ def index():
     articles = Article.query.order_by(Article.date.desc()).limit(6).all()
     return render_template('index.html', articles=articles, current_date=date.today())
 
+
 @app.route("/about")
 def about():
     return render_template('about.html')
 
+
 @app.route("/contact")
 def contact():
     return render_template('contact.html')
+
 
 @app.route("/feedback", methods=['GET', 'POST'])
 def feedback():
@@ -121,13 +124,12 @@ def news_article(id):
     comments = Comment.query.filter_by(article_id=id).order_by(Comment.date.desc()).all()
     return render_template('article.html', article=article, current_date=date.today(), comments=comments)
 
+
 @app.route("/articles_list")
 def articles_list():
-    return render_template('articles_list.html')
+    articles = Article.query.order_by(Article.date.desc()).all()
+    return render_template('articles_list.html', articles=articles)
 
-@app.route("/login")
-def login():
-    return render_template('login.html')
 
 @app.route("/create_article", methods=['GET', 'POST'])
 @login_required
@@ -135,27 +137,25 @@ def create_article():
     if request.method == 'POST':
         title = request.form.get('title')
         text = request.form.get('text')
-        category = request.form.get('category')
-        author_id = request.form.get('author_id')
+        category = request.form.get('category', 'general')
 
-        if title and text and author_id:
-            author = User.query.get(author_id)
+        if title and text:
             article = Article(
                 title=title,
                 text=text,
                 category=category,
-                author_id=current_user.id,
-                author=author,
+                author=current_user,
             )
 
             data_base.session.add(article)
             data_base.session.commit()
-            flash('Статья создана!')
+            flash('Статья создана!', 'success')
             return redirect(url_for('articles_list'))
         else:
             flash('Заполните обязательные поля', 'error')
 
     return render_template('create_article.html')
+
 
 @app.route("/edit_article/<int:id>", methods=['GET', 'POST'])
 @login_required
@@ -177,6 +177,7 @@ def edit_article(id):
 
     return render_template('edit_article.html', article=article)
 
+
 @app.route('/delete-article/<int:id>')
 @login_required
 def delete_article(id):
@@ -191,9 +192,6 @@ def delete_article(id):
     flash('Статья успешно удалена', 'success')
     return redirect(url_for('articles_list'))
 
-@app.route("/logout")
-def logout():
-    return render_template('logout.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login_page():
@@ -213,10 +211,20 @@ def login_page():
     
     return render_template('login.html')
 
+
 @app.route("/register")
 def register():
     return render_template('register.html')
 
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    flash("Вы вышли", 'success')
+    return redirect(url_for('index'))
+
 if __name__ == '__main__':
-    init_db()
+    with app.app_context():
+        init_db()
     app.run(debug=True)

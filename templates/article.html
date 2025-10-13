@@ -9,7 +9,7 @@
     <header>
          <h1>
             {{article.title}}
-            {% if article.date == current_date%}
+            {% if article.date.date() == current_date%}
             <span class="badge bg-success fs-6">Новое!</span>
             {% endif %}
         </h1>

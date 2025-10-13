@@ -16,17 +16,6 @@
             </div>
             
             <div class="mb-3">
-                <label for="author_id" class="form-label">Автор *</label>
-                <select class="form-select" id="author_id" name="author_id" required>
-                    <option value="">Выберите автора</option>
-                    {% for user in users %}
-                    <option value="{{ user.id }}">{{ user.name }} ({{ user.email }})</option>
-                    {% endfor %}
-                </select>
-                <div class="form-text">Выберите автора статьи из списка зарегистрированных пользователей</div>
-            </div>
-            
-            <div class="mb-3">
                 <label for="category" class="form-label">Категория</label>
                 <select class="form-select" id="category" name="category">
                     <option value="general">Общее</option>

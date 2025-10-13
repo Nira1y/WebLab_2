@@ -14,7 +14,7 @@
             <div class="card-body">
                 <h5 class="card-title">
                     {{ article.title }}
-                    {% if article.date == current_date %}
+                    {% if article.date.date() == current_date %}
                     <span class="badge bg-success">Новое!</span>
                     {% endif %}
                 </h5>
