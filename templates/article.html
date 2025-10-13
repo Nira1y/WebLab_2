@@ -25,6 +25,40 @@
     <a href="{{ url_for('edit_article', id=article.id) }}" class="btn btn-primary">Редактировать</a>
     <a href="{{ url_for('delete_article', id=article.id) }}" class="btn btn-danger" 
        onclick="return confirm('Вы уверены, что хотите удалить эту статью?')">Удалить</a>
+    </div>
+    <div class="container mt-5">
+
+    <h3>Комментарии ({{ comments|length }})</h3>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Добавить комментарий</h5>
+            <form method="POST">
+                <div class="mb-3">
+                    <label for="comment_text" class="form-label">Комментарий *</label>
+                    <textarea class="form-control" id="comment_text" name="comment_text" rows="3" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Отправить комментарий</button>
+            </form>
+        </div>
+    </div>
+    
+    {% for comment in comments %}
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between">
+                <h6 class="card-subtitle mb-2 text-muted">{{ comment.author_name }}</h6>
+                <small class="text-muted">{{ comment.date.strftime('%d.%m.%Y %H:%M') }}</small>
+            </div>
+            <p class="card-text">{{ comment.text }}</p>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        Пока нет комментариев. Будьте первым!
+    </div>
+    {% endfor %}
+
 </div>
 </article>
 

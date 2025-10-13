@@ -117,10 +117,26 @@ def feedback():
     
     return render_template('feedback.html')
         
-
-@app.route('/news/<int:id>')
+@app.route('/news/<int:id>', methods=['GET', 'POST'])
+@login_required
 def news_article(id):
     article = Article.query.get_or_404(id)
+
+    if request.method == 'POST':
+        comment_text = request.form.get('comment_text')
+        
+        if comment_text:
+            comment = Comment(
+                text=comment_text,
+                author_name=current_user.email, 
+                article_id=id
+            ) 
+            data_base.session.add(comment)
+            data_base.session.commit()
+            return redirect(url_for('news_article', id=id))
+        else:
+            flash('Заполните текст комментария', 'error')
+
     comments = Comment.query.filter_by(article_id=id).order_by(Comment.date.desc()).all()
     return render_template('article.html', article=article, current_date=date.today(), comments=comments)
 
@@ -187,6 +203,7 @@ def delete_article(id):
         flash('У вас нет прав для удаления статьи', 'error')
         return redirect(url_for('news_article, id=id'))
     
+    Comment.query.filter_by(article_id=id).delete()
     data_base.session.delete(article)
     data_base.session.commit()
     flash('Статья успешно удалена', 'success')
@@ -214,6 +231,7 @@ def login_page():
 
 @app.route("/register")
 def register():
+
     return render_template('register.html')
 
 
