@@ -136,6 +136,7 @@ def news_article(id):
             return redirect(url_for('news_article', id=id))
         else:
             flash('Заполните текст комментария', 'error')
+            return redirect(url_for('news_article', id=id))
 
     comments = Comment.query.filter_by(article_id=id).order_by(Comment.date.desc()).all()
     return render_template('article.html', article=article, current_date=date.today(), comments=comments)
@@ -167,6 +168,7 @@ def create_article():
             data_base.session.commit()
             flash('Статья создана!', 'success')
             return redirect(url_for('articles_list'))
+        
         else:
             flash('Заполните обязательные поля', 'error')
 
@@ -201,7 +203,7 @@ def delete_article(id):
 
     if article.author != current_user:
         flash('У вас нет прав для удаления статьи', 'error')
-        return redirect(url_for('news_article, id=id'))
+        return redirect(url_for('news_article', id=id))
     
     Comment.query.filter_by(article_id=id).delete()
     data_base.session.delete(article)
@@ -229,9 +231,39 @@ def login_page():
     return render_template('login.html')
 
 
-@app.route("/register")
+@app.route("/register", methods=['GET', 'POST'])
 def register():
+    if request.method=='POST':
+        name = request.form.get('name')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
 
+        errors = []
+
+        if not name or not email or not password:
+            errors.append('Все поля обязательны для заполнения', 'error')
+        
+        if password != confirm_password:
+            errors.append('Пароли не совпадают', 'error')
+        
+        if User.query.filter_by(email=email).first():
+            errors.append('Пользователь с таким email уже существует')
+        
+        if errors:
+            for error in errors:
+                flash(error, 'error')
+        else:
+            user = User(
+                name=name,
+                email=email
+            )
+            user.set_password(password)
+            data_base.session.add(user)
+            data_base.session.commit()
+            flash("Вы зарегистрированы", 'success')
+            return redirect(url_for('login_page'))
+        
     return render_template('register.html')
 
 

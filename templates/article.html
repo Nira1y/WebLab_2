@@ -21,10 +21,11 @@
    <div class="container mt-4">
     <a href="{{ url_for('index') }}" class="btn btn-secondary d-inline-block">Вернуться на главную</a>
     <p class="text-muted d-inline-block me-3">ID статьи: {{ article.id }}</p>  
-    
-    <a href="{{ url_for('edit_article', id=article.id) }}" class="btn btn-primary">Редактировать</a>
-    <a href="{{ url_for('delete_article', id=article.id) }}" class="btn btn-danger" 
-       onclick="return confirm('Вы уверены, что хотите удалить эту статью?')">Удалить</a>
+    {% if current_user.is_authenticated and current_user == article.author %}
+        <a href="{{ url_for('edit_article', id=article.id) }}" class="btn btn-primary">Редактировать</a>
+        <a href="{{ url_for('delete_article', id=article.id) }}" class="btn btn-danger" 
+        onclick="return confirm('Вы уверены, что хотите удалить эту статью?')">Удалить</a>
+    {% endif %}
     </div>
     <div class="container mt-5">
 
