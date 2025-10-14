@@ -1,4 +1,4 @@
-{% extends "base.html "%}
+{% extends "base.html" %}
 
 {% block title %}
 {{article.title}}
@@ -9,58 +9,76 @@
     <header>
          <h1>
             {{article.title}}
-            {% if article.date.date() == current_date%}
+            {% if article.date.date() == current_date %}
             <span class="badge bg-success fs-6">Новое!</span>
             {% endif %}
         </h1>
-        <p class="text-muted"> Опубликовано: {{ article.date.strftime('%d.%m.%Y')}}</p>
+        <p class="text-muted"> 
+            Опубликовано: {{ article.date.strftime('%d.%m.%Y')}} | 
+            Автор: {{ article.author.name }} |
+            Категория: <span class="badge bg-info">{{ article.category}}</span>
+        </p>
     </header>
-    <div>
-        {{article.text}}
-    </div>
-   <div class="container mt-4">
-    <a href="{{ url_for('index') }}" class="btn btn-secondary d-inline-block">Вернуться на главную</a>
-    <p class="text-muted d-inline-block me-3">ID статьи: {{ article.id }}</p>  
-    {% if current_user.is_authenticated and current_user == article.author %}
-        <a href="{{ url_for('edit_article', id=article.id) }}" class="btn btn-primary">Редактировать</a>
-        <a href="{{ url_for('delete_article', id=article.id) }}" class="btn btn-danger" 
-        onclick="return confirm('Вы уверены, что хотите удалить эту статью?')">Удалить</a>
-    {% endif %}
-    </div>
-    <div class="container mt-5">
-
-    <h3>Комментарии ({{ comments|length }})</h3>
-
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">Добавить комментарий</h5>
-            <form method="POST">
-                <div class="mb-3">
-                    <label for="comment_text" class="form-label">Комментарий *</label>
-                    <textarea class="form-control" id="comment_text" name="comment_text" rows="3" required></textarea>
-                </div>
-                <button type="submit" class="btn btn-primary">Отправить комментарий</button>
-            </form>
-        </div>
+    <div class="article-content">
+        {{ article.text|safe }}
     </div>
     
-    {% for comment in comments %}
-    <div class="card mb-3">
-        <div class="card-body">
-            <div class="d-flex justify-content-between">
-                <h6 class="card-subtitle mb-2 text-muted">{{ comment.author_name }}</h6>
-                <small class="text-muted">{{ comment.date.strftime('%d.%m.%Y %H:%M') }}</small>
+    <div class="mt-5">
+        <h3>Комментарии ({{ comments|length }})</h3>
+        {% if current_user.is_authenticated %}
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Добавить комментарий</h5>
+                <p class="text-muted">Вы вошли как: {{ current_user.email }}</p>
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="comment_text" class="form-label">Комментарий *</label>
+                        <textarea class="form-control" id="comment_text" name="comment_text" rows="3" required 
+                                  placeholder="Введите ваш комментарий..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Отправить комментарий</button>
+                </form>
             </div>
-            <p class="card-text">{{ comment.text }}</p>
         </div>
-    </div>
-    {% else %}
-    <div class="alert alert-info">
-        Пока нет комментариев. Будьте первым!
-    </div>
-    {% endfor %}
+        {% else %}
 
+        <div class="alert alert-info">
+            <h5>Хотите оставить комментарий?</h5>
+            <p>Пожалуйста, <a href="{{ url_for('login_page', next=request.url) }}" class="alert-link">войдите</a> или 
+               <a href="{{ url_for('register') }}" class="alert-link">зарегистрируйтесь</a>, чтобы оставлять комментарии.</p>
+        </div>
+        {% endif %}
+        
+        {% for comment in comments %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="card-subtitle mb-2 text-muted">{{ comment.author_name }}</h6>
+                        <p class="card-text mb-0">{{ comment.text }}</p>
+                    </div>
+                    <small class="text-muted">{{ comment.date.strftime('%d.%m.%Y %H:%M') }}</small>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            Пока нет комментариев. Будьте первым!
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="mt-4 mb-4 d-flex justify-content-between align-items-center">
+    <div>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">Вернуться на главную</a>
+        <a href="{{ url_for('articles_list') }}" class="btn btn-outline-primary">Все статьи</a>
+    </div>
+    {% if current_user.is_authenticated and current_user == article.author %}
+    <div>
+        <a href="{{ url_for('edit_article', id=article.id) }}" class="btn btn-custom">Редактировать</a>
+        <a href="{{ url_for('delete_article', id=article.id) }}" class="btn btn-warning">Удалить</a>
+    </div>
+    {% endif %}
 </div>
 </article>
-
 {% endblock %}

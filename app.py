@@ -4,6 +4,7 @@ from datetime import datetime, date
 import re
 from models import data_base, User, Article, Comment
 from werkzeug.security import generate_password_hash, check_password_hash
+from urllib.parse import unquote
 
 app = Flask(__name__)
 app.secret_key = 'dev-key'
@@ -40,17 +41,17 @@ def init_db():
                 {
                     'title': 'Первая новость',
                     'text': 'Текст первой новости',
-                    'category': 'general'
+                    'category': 'Общее'
                 },
                 {
                     'title': 'Вторая новость',
                     'text': 'Текст второй новости', 
-                    'category': 'technology'
+                    'category': 'Наука и технологии'
                 },
                 {
                     'title': 'Третья новость', 
                     'text': 'Текст третьей новости',
-                    'category': 'science'
+                    'category': 'Культура'
                 }
             ]
                 
@@ -118,11 +119,14 @@ def feedback():
     return render_template('feedback.html')
         
 @app.route('/news/<int:id>', methods=['GET', 'POST'])
-@login_required
 def news_article(id):
     article = Article.query.get_or_404(id)
 
     if request.method == 'POST':
+        if not current_user.is_authenticated:
+            flash('Для добавления комментариев необходимо войти в систему', 'error')
+            return redirect(url_for('login_page', next=request.url))
+        
         comment_text = request.form.get('comment_text')
         
         if comment_text:
@@ -133,6 +137,7 @@ def news_article(id):
             ) 
             data_base.session.add(comment)
             data_base.session.commit()
+            flash('Комментарий успешно добавлен!', 'success')
             return redirect(url_for('news_article', id=id))
         else:
             flash('Заполните текст комментария', 'error')
@@ -142,10 +147,31 @@ def news_article(id):
     return render_template('article.html', article=article, current_date=date.today(), comments=comments)
 
 
-@app.route("/articles_list")
-def articles_list():
-    articles = Article.query.order_by(Article.date.desc()).all()
-    return render_template('articles_list.html', articles=articles)
+@app.route("/articles")
+@app.route("/articles/<category>")
+def articles_list(category=None):
+    if category is None:
+        category = request.args.get('category', '').strip()
+    
+    if category:
+        category = unquote(category)
+    
+    categories = data_base.session.query(Article.category).distinct().all()
+    categories = [cat[0] for cat in categories if cat[0]]
+
+    if category and category not in categories:
+        flash(f'Категория "{category}" не найдена', 'error')
+        articles = []
+    elif category:
+
+        articles = Article.query.filter_by(category=category).order_by(Article.date.desc()).all()
+    else:
+        articles = Article.query.order_by(Article.date.desc()).all()
+    
+    return render_template('articles_list.html', 
+                         articles=articles, 
+                         current_category=category,
+                         categories=categories)
 
 
 @app.route("/create_article", methods=['GET', 'POST'])

@@ -29,7 +29,7 @@ class Article(data_base.Model):
     text = data_base.Column(data_base.Text, nullable=False)
     date = data_base.Column(data_base.DateTime, default=datetime.utcnow)
     user_id = data_base.Column(data_base.Integer, data_base.ForeignKey('user.id'), nullable=False)
-    category = data_base.Column(data_base.String(50), default='general')
+    category = data_base.Column(data_base.String(50), default='Общая')
     comment = data_base.relation('Comment', backref='article', lazy='dynamic')
 
 class Comment(data_base.Model):
