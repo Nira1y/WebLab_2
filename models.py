@@ -20,6 +20,14 @@ class User(UserMixin, data_base.Model):
 
     def check_password(self, password):
         return check_password_hash(self.hashed_password, password)
+    
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "email": self.email,
+            "date": self.date
+        }
 
 class Article(data_base.Model):
     __tablename__= "article"
@@ -32,6 +40,17 @@ class Article(data_base.Model):
     category = data_base.Column(data_base.String(50), default='Общая')
     comment = data_base.relation('Comment', backref='article', lazy='dynamic')
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "text": self.text,
+            "date": self.date,
+            "user_id": self.user_id,
+            "author_name": self.author.name if self.author else None,
+            "category": self.category
+        }
+
 class Comment(data_base.Model):
     __tablename__="comment"
 
@@ -40,3 +59,12 @@ class Comment(data_base.Model):
     date = data_base.Column(data_base.DateTime, default=datetime.utcnow)
     article_id = data_base.Column(data_base.Integer, data_base.ForeignKey('article.id'), nullable=False)
     author_name = data_base.Column(data_base.String(100), nullable=False)
+
+    def to_dict(self):
+        return{
+            "id": self.id,
+            "text": self.date,
+            "date": self.data,
+            "article_id": self.article_id,
+            "author_name": self.author_name
+        }

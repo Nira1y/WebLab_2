@@ -1,3 +1,4 @@
+from api import api_bp
 from flask import Flask, render_template, request, flash, redirect, url_for
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from datetime import datetime, date
@@ -13,10 +14,12 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 data_base.init_app(app)
 
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login_page' 
 login_manager.login_message = 'Пожалуйста, войдите для доступа к этой странице.'
+app.register_blueprint(api_bp)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -135,6 +138,7 @@ def news_article(id):
                 author_name=current_user.email, 
                 article_id=id
             ) 
+            
             data_base.session.add(comment)
             data_base.session.commit()
             flash('Комментарий успешно добавлен!', 'success')
