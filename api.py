@@ -119,3 +119,24 @@ def update_article(id):
         'message': 'Статья успешно создана',
         'article': article.to_dict()
     })
+
+@api_bp.route('/api/articles/<int:id>', methods=['DELETE'])
+@login_required
+def delete_article(id):
+    article = Article.query.get_or_404(id)
+    
+    if article.author != current_user:
+        return jsonify({
+            'success': False,
+            'error': 'У вас нет прав для удаления этой статьи'
+        }), 403
+    
+    Comment.query.filter_by(article_id=id).delete()
+        
+    data_base.session.delete(article)
+    data_base.session.commit()
+        
+    return jsonify({
+        'success': True,
+        'message': 'Статья успешно удалена'
+    })
