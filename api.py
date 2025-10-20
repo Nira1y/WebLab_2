@@ -49,3 +49,35 @@ def get_article(id):
         'success': True,
         'article': article.to_dict()
     })
+
+@api_bp.route('/api/articles', methods=['POST'])
+def create_article():
+    data = request.get_json()
+    if not data:
+        return jsonify({
+            'saccess': False,
+            'error': 'Данные должны быть в фомате JSON'
+        })
+    
+    errors = validate_article(data)
+    if errors:
+        return jsonify({
+            'success': False,
+            'errors':errors
+        }), 404
+    
+    article = Article(
+        title = data['title'].strip(),
+        text = data['text'].strip(),
+        category = data.get('category', 'Общее').strip(),
+        author=current_user
+    )
+
+    data_base.session.add(article)
+    data_base.session.commit()
+
+    return jsonify({
+        'success': True,
+        'message': 'Статья создана',
+        'article': article.to_dict()
+    })
