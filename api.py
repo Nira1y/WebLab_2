@@ -167,3 +167,29 @@ def sort_by_date():
         'count': len(articles),
         'articles': [article.to_dict() for article in articles]
     })
+
+@api_bp.route('/api/comment', methods = ['GET'])
+def get_comments():
+    comments = Comment.query.all()
+    return jsonify({
+        'success': True,
+        'count': len(comments),
+        'comments': [comment.to_dict() for comment in comments]
+    })
+
+@api_bp.route('/api/comment/<int:id>', methods = ['GET'])
+def get_comment(id):
+    comment = Comment.query.get(id)
+    if not comment:
+            return jsonify({
+                'success': False,
+                'error': {
+                    'code': 404,
+                    'message': 'Комментарий не найден',
+                    'details': f'Комментарий с ID {id} не существует'
+                }
+            })
+    return jsonify({
+        'success': True,
+        'comment': comment.to_dict()
+    })

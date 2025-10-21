@@ -63,8 +63,8 @@ class Comment(data_base.Model):
     def to_dict(self):
         return{
             "id": self.id,
-            "text": self.date,
-            "date": self.data,
+            "text": self.text,
+            "date": self.date,
             "article_id": self.article_id,
             "author_name": self.author_name
         }
