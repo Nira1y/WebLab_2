@@ -45,11 +45,11 @@ class Article(data_base.Model):
             "id": self.id,
             "title": self.title,
             "text": self.text,
-            "date": self.date,
+            "date": self.date.isoformat() if self.date else None, 
             "user_id": self.user_id,
             "author_name": self.author.name if self.author else None,
             "category": self.category
-        }
+    }
 
 class Comment(data_base.Model):
     __tablename__="comment"
