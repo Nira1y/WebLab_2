@@ -140,3 +140,14 @@ def delete_article(id):
         'success': True,
         'message': 'Статья успешно удалена'
     })
+
+@api_bp.route('/api/articles/category/<string:category>', methods = ['GET'])
+def get_by_category(category):
+    articles = Article.query.filter_by(category=category).all()
+    return jsonify({
+        'success': True,
+        'category': category,
+        'count': len(articles),
+        'articles': [article.to_dict() for article in articles]
+    })  
+
