@@ -151,3 +151,19 @@ def get_by_category(category):
         'articles': [article.to_dict() for article in articles]
     })  
 
+
+@api_bp.route('/api/articles/sort/date', methods = ['GET'])
+def sort_by_date():
+    order = request.args.get('order', 'desc').lower()
+
+    if order == 'asc':
+        articles = Article.query.order_by(Article.date.asc()).all()
+    else:
+        articles = Article.query.order_by(Article.date.desc()).all()
+    
+    return jsonify({
+        'success': True,
+        'order': order,
+        'count': len(articles),
+        'articles': [article.to_dict() for article in articles]
+    })
