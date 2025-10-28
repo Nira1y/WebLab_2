@@ -1,11 +1,12 @@
 from api import api_bp
-from flask import Flask, render_template, request, flash, redirect, url_for
+from flask import Flask, render_template, request, flash, redirect, url_for, make_response
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from datetime import datetime, date
 import re
 from models import data_base, User, Article, Comment
 from werkzeug.security import generate_password_hash, check_password_hash
 from urllib.parse import unquote
+from jwt_util import jwt_manager
 
 app = Flask(__name__)
 app.secret_key = 'dev-key'
@@ -13,7 +14,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///news_blog.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 data_base.init_app(app)
-
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -70,6 +70,16 @@ def init_db():
                 
             data_base.session.commit()
 
+@app.before_request
+def before_request():
+    if not current_user.is_authenticated:
+        jwt_token = request.cookies.get('jwt_token')
+        if jwt_token:
+            payload = jwt_manager.verify_token(jwt_token)
+            if payload:
+                user = User.query.get(payload['user_id'])
+                if user:
+                    login_user(user)
 
 @app.route("/index")
 @app.route("/")
@@ -77,16 +87,13 @@ def index():
     articles = Article.query.order_by(Article.date.desc()).limit(6).all()
     return render_template('index.html', articles=articles, current_date=date.today())
 
-
 @app.route("/about")
 def about():
     return render_template('about.html')
 
-
 @app.route("/contact")
 def contact():
     return render_template('contact.html')
-
 
 @app.route("/feedback", methods=['GET', 'POST'])
 def feedback():
@@ -150,7 +157,6 @@ def news_article(id):
     comments = Comment.query.filter_by(article_id=id).order_by(Comment.date.desc()).all()
     return render_template('article.html', article=article, current_date=date.today(), comments=comments)
 
-
 @app.route("/articles")
 @app.route("/articles/<category>")
 def articles_list(category=None):
@@ -167,7 +173,6 @@ def articles_list(category=None):
         flash(f'Категория "{category}" не найдена', 'error')
         articles = []
     elif category:
-
         articles = Article.query.filter_by(category=category).order_by(Article.date.desc()).all()
     else:
         articles = Article.query.order_by(Article.date.desc()).all()
@@ -176,7 +181,6 @@ def articles_list(category=None):
                          articles=articles, 
                          current_category=category,
                          categories=categories)
-
 
 @app.route("/create_article", methods=['GET', 'POST'])
 @login_required
@@ -204,7 +208,6 @@ def create_article():
 
     return render_template('create_article.html')
 
-
 @app.route("/edit_article/<int:id>", methods=['GET', 'POST'])
 @login_required
 def edit_article(id):
@@ -225,7 +228,6 @@ def edit_article(id):
 
     return render_template('edit_article.html', article=article)
 
-
 @app.route('/delete-article/<int:id>')
 @login_required
 def delete_article(id):
@@ -241,7 +243,6 @@ def delete_article(id):
     flash('Статья успешно удалена', 'success')
     return redirect(url_for('articles_list'))
 
-
 @app.route('/login', methods=['GET', 'POST'])
 def login_page():
     if request.method == 'POST':
@@ -252,14 +253,22 @@ def login_page():
         
         if user and user.check_password(password):
             login_user(user)
+            
+            access_token = jwt_manager.create_access_token(user.id, user.email)
+            refresh_token = jwt_manager.create_refresh_token(user.id, user.email)
+            
             flash('Вы успешно вошли в систему!', 'success')
             next_page = request.args.get('next')
-            return redirect(next_page or url_for('index'))
+            
+            response = redirect(next_page or url_for('index'))
+            response.set_cookie('jwt_token', access_token, max_age=3600, httponly=True)
+            response.set_cookie('refresh_token', refresh_token, max_age=2592000, httponly=True)
+            
+            return response
         else:
             flash('Неверный email или пароль', 'error')
     
     return render_template('login.html')
-
 
 @app.route("/register", methods=['GET', 'POST'])
 def register():
@@ -272,10 +281,10 @@ def register():
         errors = []
 
         if not name or not email or not password:
-            errors.append('Все поля обязательны для заполнения', 'error')
+            errors.append('Все поля обязательны для заполнения')
         
         if password != confirm_password:
-            errors.append('Пароли не совпадают', 'error')
+            errors.append('Пароли не совпадают')
         
         if User.query.filter_by(email=email).first():
             errors.append('Пользователь с таким email уже существует')
@@ -291,20 +300,35 @@ def register():
             user.set_password(password)
             data_base.session.add(user)
             data_base.session.commit()
+            
+            login_user(user)
+            access_token = jwt_manager.create_access_token(user.id, user.email)
+            refresh_token = jwt_manager.create_refresh_token(user.id, user.email)
+            
             flash("Вы зарегистрированы", 'success')
-            return redirect(url_for('login_page'))
+            
+            response = redirect(url_for('index'))
+            response.set_cookie('jwt_token', access_token, max_age=3600, httponly=True)
+            response.set_cookie('refresh_token', refresh_token, max_age=2592000, httponly=True)
+            
+            return response
         
     return render_template('register.html')
-
 
 @app.route("/logout")
 @login_required
 def logout():
     logout_user()
     flash("Вы вышли", 'success')
-    return redirect(url_for('index'))
+    
+    response = redirect(url_for('index'))
+    response.set_cookie('jwt_token', '', expires=0)
+    response.set_cookie('refresh_token', '', expires=0)
+    
+    return response
+
 
 if __name__ == '__main__':
     with app.app_context():
         init_db()
-    app.run(debug=False)
+    app.run(debug=True)
