@@ -48,6 +48,7 @@ class Article(data_base.Model):
             "date": self.date.isoformat() if self.date else None, 
             "user_id": self.user_id,
             "author_name": self.author.name if self.author else None,
+            "author_email": self.author.email if self.author else None,
             "category": self.category
     }
 

@@ -54,35 +54,3 @@ class JWTManager:
         }
 
 jwt_manager = JWTManager()
-
-def token_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = None
-        auth_header = request.headers.get('Authorization')  
-        if auth_header and auth_header.startswith('Bearer '):  
-            token = auth_header.split(' ')[1]
-        
-        if not token:
-            return jsonify({
-                'success': False,
-                'error': 'Токен отсутствует'
-            }), 401
-        
-        payload = jwt_manager.verify_token(token)
-        if not payload:
-            return jsonify({
-                'success': False,
-                'error': 'Невалидный или просроченный токен'
-            }), 401
-        
-        user = User.query.get(payload['user_id'])
-        if not user:
-            return jsonify({
-                'success': False,
-                'error': 'Пользователь не найден'
-            }), 401
-        
-        kwargs['current_user'] = user
-        return f(*args, **kwargs)
-    return decorated

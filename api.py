@@ -1,8 +1,5 @@
-from flask import Blueprint, request, jsonify
-from flask_login import current_user
+from flask import Blueprint, request, jsonify, g
 from models import data_base, Article, Comment
-from datetime import datetime
-import re
 from models import User
 from werkzeug.security import check_password_hash
 from jwt_util import jwt_manager
@@ -36,6 +33,66 @@ def validate_comment(data):
     
     return errors
 
+@api_bp.after_request
+def add_token_headers(response):
+    if (response.status_code in [200, 201] and 
+        hasattr(g, 'new_access_token')):
+        
+        response.headers['X-New-Access-Token'] = g.new_access_token
+        if hasattr(g, 'new_refresh_token') and g.new_refresh_token:
+            response.headers['X-New-Refresh-Token'] = g.new_refresh_token
+
+        if hasattr(g, 'new_access_token'):
+            del g.new_access_token
+        if hasattr(g, 'new_refresh_token'):
+            del g.new_refresh_token
+    
+    return response
+
+@api_bp.route('/api/auth/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    if not data:
+        return jsonify({
+            'success': False,
+            'error': 'Данные должны быть в формате JSON'
+        }), 400
+    
+    name = data.get('name')
+    email = data.get('email')
+    password = data.get('password')
+    
+    if not all([name, email, password]):
+        return jsonify({
+            'success': False,
+            'error': 'Все поля обязательны'
+        }), 400
+
+    existing_user = User.query.filter_by(email=email).first()
+    if existing_user:
+        return jsonify({
+            'success': False,
+            'error': 'Пользователь с таким email уже существует'
+        }), 400
+    
+    user = User(name=name, email=email)
+    user.set_password(password)
+    
+    data_base.session.add(user)
+    data_base.session.commit()
+
+    access_token = jwt_manager.create_access_token(user.id, user.email)
+    refresh_token = jwt_manager.create_refresh_token(user.id, user.email)
+    
+    return jsonify({
+        'success': True,
+        'message': 'Регистрация прошла успешно',
+        'tokens': {
+            'access_token': access_token,
+            'refresh_token': refresh_token
+        },
+        'user': user.to_dict()
+    })
 
 @api_bp.route('/api/auth/login', methods=['POST'])
 def login():
@@ -98,6 +155,9 @@ def refresh():
             'error': 'Невалидный refresh token'
         }), 401
     
+    g.new_access_token = new_tokens['access_token']
+    g.new_refresh_token = new_tokens.get('refresh_token')
+    
     return jsonify({
         'success': True,
         'message': 'Токены обновлены',
@@ -106,11 +166,37 @@ def refresh():
 
 @api_bp.route('/api/articles', methods=['GET'])
 def get_articles():
-    articles = Article.query.all()
+    page = request.args.get('page', 1, type=int)
+    limit = request.args.get('limit', 10, type=int)
+    category = request.args.get('category', '')
+    search = request.args.get('search', '')
+    order = request.args.get('order', 'desc')
+    
+    query = Article.query
+    
+    if category:
+        query = query.filter(Article.category == category)
+    
+    if search:
+        query = query.filter(Article.title.ilike(f'%{search}%'))
+    
+    if order == 'asc':
+        query = query.order_by(Article.date.asc())
+    else:
+        query = query.order_by(Article.date.desc())
+
+    articles = query.paginate(
+        page=page, 
+        per_page=limit, 
+        error_out=False
+    )
+    
     return jsonify({
         'success': True,
-        'count': len(articles),
-        'articles': [article.to_dict() for article in articles]
+        'count': articles.total,
+        'page': page,
+        'pages': articles.pages,
+        'articles': [article.to_dict() for article in articles.items]
     })
 
 @api_bp.route('/api/articles/<int:id>', methods=['GET'])
@@ -119,33 +205,7 @@ def get_article(id):
     return jsonify({
         'success': True,
         'article': article.to_dict()
-    })
-
-@api_bp.route('/api/articles/category/<string:category>', methods=['GET'])
-def get_by_category(category):
-    articles = Article.query.filter_by(category=category).all()
-    return jsonify({
-        'success': True,
-        'category': category,
-        'count': len(articles),
-        'articles': [article.to_dict() for article in articles]
-    })  
-
-@api_bp.route('/api/articles/sort/date', methods=['GET'])
-def sort_by_date():
-    order = request.args.get('order', 'desc').lower()
-
-    if order == 'asc':
-        articles = Article.query.order_by(Article.date.asc()).all()
-    else:
-        articles = Article.query.order_by(Article.date.desc()).all()
-    
-    return jsonify({
-        'success': True,
-        'order': order,
-        'count': len(articles),
-        'articles': [article.to_dict() for article in articles]
-    })
+    }) 
 
 @api_bp.route('/api/comments', methods=['GET'])
 def get_comments():
@@ -173,9 +233,11 @@ def get_comment(id):
         'comment': comment.to_dict()
     })
 
-
-@api_bp.route('/api/auth/me', methods=['GET'])
+@api_bp.route('/api/auth/me', methods=['GET', 'OPTIONS'])
 def get_current_user():
+    if request.method == 'OPTIONS':
+        return jsonify({'success': True}), 200
+    
     if not hasattr(request, 'current_user') or not request.current_user:
         return jsonify({
             'success': False,
@@ -223,6 +285,13 @@ def create_article_jwt():
         'success': True,
         'message': 'Статья создана',
         'article': article.to_dict()
+    })
+
+@api_bp.route('/api/auth/logout', methods=['POST'])
+def logout():
+    return jsonify({
+        'success': True,
+        'message': 'Успешный выход из системы'
     })
 
 @api_bp.route('/api/protected/articles/<int:id>', methods=['PUT'])
